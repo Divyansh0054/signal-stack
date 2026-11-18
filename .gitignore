@@ -1,0 +1,17 @@
+# Virtual environments
+backend/venv/
+venv/
+.venv/
+
+# Node dependencies & build artifacts
+frontend/node_modules/
+node_modules/
+frontend/dist/
+
+# Python cache & test caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local sensitive env (keep .env.example tracked)
+.env
