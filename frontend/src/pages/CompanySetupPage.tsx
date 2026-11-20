@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Company } from '../types';
-import { Building2, Globe, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Building2, Globe, Sparkles, CheckCircle2, ArrowRight, Target, ShieldCheck } from 'lucide-react';
 
 interface CompanySetupPageProps {
   onCompanyCreated: (company: Company) => void;
@@ -60,20 +60,26 @@ export const CompanySetupPage: React.FC<CompanySetupPageProps> = ({
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-10">
+    <div className="p-8 max-w-5xl mx-auto space-y-8 font-sans">
       <div>
-        <h2 className="text-2xl font-bold text-white tracking-tight">Company Setup & Intelligence Initialization</h2>
-        <p className="text-sm text-slate-400 mt-1">
-          Provide any target company name and website URL. The engine performs real website crawling, extracts verified facts, constructs an adaptive 10-question interview, and discovers 20+ category sources automatically.
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <Building2 className="w-3.5 h-3.5 text-slate-400" />
+          <span>Target Onboarding</span>
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 tracking-tight mt-1">
+          Company Setup & Intelligence Initialization
+        </h2>
+        <p className="text-sm text-slate-600 mt-1">
+          Provide any company name and public website. The engine autonomously performs live website crawling, extracts verified facts, constructs an adaptive 10-question interview, and discovers 20+ sources.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Cols: Form */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form Column */}
+        <div className="lg:col-span-2 bg-white border border-slate-200/90 p-8 rounded-2xl shadow-xs space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Company Name *</label>
+              <label className="block font-semibold text-slate-800 mb-1.5 text-xs">Company Name *</label>
               <div className="relative">
                 <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
@@ -82,13 +88,13 @@ export const CompanySetupPage: React.FC<CompanySetupPageProps> = ({
                   placeholder="e.g. MeetUniversity"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Company Website URL *</label>
+              <label className="block font-semibold text-slate-800 mb-1.5 text-xs">Company Website URL *</label>
               <div className="relative">
                 <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
@@ -97,76 +103,87 @@ export const CompanySetupPage: React.FC<CompanySetupPageProps> = ({
                   placeholder="https://www.meetuniversity.com"
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-mono"
                 />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1 font-mono">
-                Safe SSRF filtering prevents access to private or internal loopback IP networks.
-              </p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Current Strategic Focus / Commercial Priority <span className="text-slate-400 font-normal">(Optional)</span>
+              <label className="block font-semibold text-slate-800 mb-1.5 text-xs">
+                Current Strategic Focus (Optional)
               </label>
-              <textarea
-                rows={3}
-                placeholder="e.g. Focus on student acquisition and university counseling, or expanding B2B institutional partnerships."
-                value={focus}
-                onChange={(e) => setFocus(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
-              />
+              <div className="relative">
+                <Target className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  placeholder="e.g. Focus on B2B university partnerships & institutional licensing"
+                  value={focus}
+                  onChange={(e) => setFocus(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all"
+                />
+              </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-rose-950/60 border border-rose-800 rounded-xl text-xs text-rose-300">
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-medium">
                 {error}
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full py-3 rounded-xl text-xs font-semibold text-white shadow-md transition-all flex items-center justify-center gap-2 ${
-                isLoading
-                  ? 'bg-slate-700 cursor-not-allowed text-slate-400'
-                  : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30'
-              }`}
-            >
-              <Sparkles className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>{isLoading ? 'Crawling & Profiling Company...' : 'Initialize Intelligence Stack'}</span>
-            </button>
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={isLoading || !name.trim() || !website.trim()}
+                className="w-full py-3 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-xs"
+              >
+                <Sparkles className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>
+                  {isLoading
+                    ? 'Crawling Website & Initializing Intelligence...'
+                    : 'Initialize Target Intelligence'}
+                </span>
+              </button>
+            </div>
           </form>
         </div>
 
-        {/* Right Col: Active & Switcher */}
+        {/* Target Directory Sidebar */}
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-white">Configured Demonstrations</h3>
-          <div className="space-y-2">
-            {companies.map((c) => {
-              const isSelected = selectedCompany?.id === c.id;
-              return (
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-4">
+            <h3 className="text-sm font-bold text-slate-900">Active Target Directory</h3>
+            <div className="space-y-2">
+              {companies.map((c) => (
                 <div
                   key={c.id}
                   onClick={() => onSelectCompany(c)}
-                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-emerald-950/40 border-emerald-500/50 shadow-sm'
-                      : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                  className={`p-3 rounded-xl border text-xs cursor-pointer transition-all flex items-center justify-between ${
+                    selectedCompany?.id === c.id
+                      ? 'bg-slate-100 border-slate-300 font-semibold text-slate-900'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100/60'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm text-white">{c.name}</span>
-                    {isSelected && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                  <div>
+                    <div className="text-slate-900 font-semibold">{c.name}</div>
+                    <div className="text-[11px] text-slate-500 font-mono mt-0.5 truncate max-w-[180px]">
+                      {c.website}
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5 truncate">{c.website}</div>
-                  <div className="text-[11px] text-slate-400 mt-2 font-mono flex items-center justify-between">
-                    <span>{c.industry ? c.industry.split('/')[0].trim() : 'Tech'}</span>
-                    <ArrowRight className="w-3 h-3 text-slate-500" />
-                  </div>
+                  {selectedCompany?.id === c.id && (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  )}
                 </div>
-              );
-            })}
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-xs text-slate-600 space-y-2">
+            <div className="flex items-center gap-1.5 font-semibold text-slate-900">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Strict Unseen-Company Support</span>
+            </div>
+            <p className="leading-relaxed">
+              The engine operates fully dynamically. Enter any valid public web domain to generate real intelligence profiles, questions, and sources without pre-configuration.
+            </p>
           </div>
         </div>
       </div>

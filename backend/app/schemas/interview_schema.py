@@ -3,32 +3,6 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 
-class InterviewQuestionResponse(BaseModel):
-    id: str
-    company_id: str
-    question_order: int
-    question_text: str
-    question_category: str
-    context_rationale: str
-    is_confidential_eligible: bool
-    is_skipped: bool
-    is_followup: bool
-    parent_question_id: Optional[str] = None
-    created_at: datetime
-    answer: Optional[Dict[str, Any]] = None
-
-    class Config:
-        from_attributes = True
-
-
-class AnswerSubmitRequest(BaseModel):
-    answer_text: str = Field(..., description="Answer provided by founder")
-
-
-class AnswerUpdateRequest(BaseModel):
-    answer_text: str = Field(..., description="Updated answer text")
-
-
 class AnswerResponse(BaseModel):
     id: str
     question_id: str
@@ -41,6 +15,32 @@ class AnswerResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class InterviewQuestionResponse(BaseModel):
+    id: str
+    company_id: str
+    question_order: int
+    question_text: str
+    question_category: str
+    context_rationale: str
+    is_confidential_eligible: bool
+    is_skipped: bool
+    is_followup: bool
+    parent_question_id: Optional[str] = None
+    created_at: datetime
+    answer: Optional[AnswerResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AnswerSubmitRequest(BaseModel):
+    answer_text: str = Field(..., description="Answer provided by founder")
+
+
+class AnswerUpdateRequest(BaseModel):
+    answer_text: str = Field(..., description="Updated answer text")
 
 
 class InterviewSessionStatus(BaseModel):

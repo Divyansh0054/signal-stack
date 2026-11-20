@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from backend.app.models.company import Company, CompanyProfile
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class AdaptiveInterviewEngine:
     """
-    Manages the adaptive 10-question executive interview.
+    Manages the adaptive 10-question executive interview with follow-up generation.
     Generates dynamic, company-specific questions tailored to industry,
     business model, products, and previous answers.
     """
@@ -80,9 +81,11 @@ class AdaptiveInterviewEngine:
         """
         ind_lower = industry.lower() if industry else ""
         products = profile.products_services if profile and profile.products_services else []
-        prod_names = ", ".join([p.get("name", "") for p in products[:2]]) or "your core product lines"
+        prod_names = ", ".join([p.get("name", "") for p in products[:2] if isinstance(p, dict)]) or f"{name} core platform"
+        cust_segments = profile.customer_segments if profile and profile.customer_segments else []
+        cust_names = ", ".join([c.get("segment", "") for c in cust_segments[:2] if isinstance(c, dict)]) or "target business customers"
 
-        if "edtech" in ind_lower or "study abroad" in ind_lower or "university" in ind_lower:
+        if "edtech" in ind_lower or "study abroad" in ind_lower or "university" in ind_lower or "meetuniversity" in name.lower():
             return [
                 {
                     "category": "revenue_engine",
@@ -131,26 +134,26 @@ class AdaptiveInterviewEngine:
                 },
                 {
                     "category": "decision_triggers",
-                    "text": f"What specific developments (e.g., competitor pricing cuts, sudden embassy visa moratoriums, university recruitment freezes) should trigger an immediate executive alert for {name}?",
+                    "text": f"What specific developments (e.g., competitor commission rate increases, sudden embassy visa moratoriums, university recruitment freezes) should trigger an immediate executive alert for {name}?",
                     "rationale": "Sets urgency thresholds for the ranking engine and Monday Morning Brief."
                 }
             ]
 
-        elif "developer" in ind_lower or "analytics" in ind_lower:
+        elif "developer" in ind_lower or "analytics" in ind_lower or "posthog" in name.lower():
             return [
                 {
                     "category": "revenue_engine",
-                    "text": f"For {name}, what proportion of revenue is driven by self-serve cloud tiers versus enterprise annual contracts with custom VPC deployments?",
+                    "text": f"For {name}, what proportion of revenue is driven by self-serve cloud usage (events ingested) versus enterprise annual contracts with custom VPC deployments?",
                     "rationale": "Distinguishes product-led growth self-serve vs top-down enterprise sales dynamics."
                 },
                 {
                     "category": "customer_segments",
-                    "text": "What is the profile of your ideal engineering or product team (e.g., Series A startups vs Fortune 500 privacy-conscious scale-ups), and who holds purchasing authority?",
+                    "text": f"What is the profile of your ideal engineering or product team within {cust_names}, and who holds primary purchasing authority?",
                     "rationale": "Targets monitoring of developer sentiment and buyer persona behavior."
                 },
                 {
                     "category": "customer_pain",
-                    "text": "What are the primary operational challenges your users encounter around event ingestion latency, SDK configuration, or query speeds at scale?",
+                    "text": f"What are the primary operational challenges your users encounter when deploying {prod_names} around event latency, SDK configuration, or query speeds?",
                     "rationale": "Directs customer signal monitoring toward developer forums and GitHub issues."
                 },
                 {
@@ -160,12 +163,12 @@ class AdaptiveInterviewEngine:
                 },
                 {
                     "category": "pricing_economics",
-                    "text": "How do data egress costs, cloud hosting spikes, and usage-based event volume tiers influence your gross margins?",
+                    "text": "How do data egress costs, cloud infrastructure spikes, and usage-based event volume tiers influence your gross margins?",
                     "rationale": "Establishes unit economics and margin thresholds for cloud infrastructure monitoring."
                 },
                 {
                     "category": "acquisition_channels",
-                    "text": "How dependent is {name} on open-source community adoption, GitHub stars, developer advocacy, and Hacker News sentiment?",
+                    "text": f"How dependent is {name} on open-source community adoption, GitHub stars, developer advocacy, and technical engineering blog sentiment?",
                     "rationale": "Maps developer community intelligence channels to monitor."
                 },
                 {
@@ -175,12 +178,12 @@ class AdaptiveInterviewEngine:
                 },
                 {
                     "category": "internal_patterns",
-                    "text": "What are the top three technical objections raised in sales demos or proof-of-concept evaluations that lead to lost deals?",
+                    "text": "What are the top technical objections raised in sales demos or proof-of-concept evaluations that lead to lost enterprise deals?",
                     "rationale": "Extracts internal objection benchmarks for comparison against competitor features."
                 },
                 {
                     "category": "strategic_priorities",
-                    "text": f"What are your top engineering and product bets for the next two quarters (e.g., AI data warehousing, session replay enhancements, automated anomaly detection)?",
+                    "text": f"What are your top engineering bets for the next two quarters (e.g., automated anomaly detection, session replay enhancements, AI querying)?",
                     "rationale": "Aligns market intelligence with product roadmap initiatives."
                 },
                 {
@@ -190,7 +193,7 @@ class AdaptiveInterviewEngine:
                 }
             ]
 
-        elif "fintech" in ind_lower or "lending" in ind_lower:
+        elif "fintech" in ind_lower or "lending" in ind_lower or "credit" in ind_lower or "tala" in name.lower():
             return [
                 {
                     "category": "revenue_engine",
@@ -199,7 +202,7 @@ class AdaptiveInterviewEngine:
                 },
                 {
                     "category": "customer_segments",
-                    "text": "Which demographic segments (e.g., informal sector merchants, gig economy workers, first-time borrowers) exhibit the lowest default rates and highest retention?",
+                    "text": f"Which borrower demographics within {cust_names} exhibit the lowest default rates and highest repeat borrowing velocity?",
                     "rationale": "Clarifies underwriting risk profiles and priority market segments."
                 },
                 {
@@ -224,76 +227,76 @@ class AdaptiveInterviewEngine:
                 },
                 {
                     "category": "regulatory_risks",
-                    "text": "How do central bank interest rate caps, digital lending licensing mandates, and consumer protection guidelines shape your geographic expansion?",
+                    "text": "How do central bank interest rate caps, digital lending licensing mandates, and consumer protection guidelines shape your expansion?",
                     "rationale": "Identifies compliance and licensing triggers for regulatory intelligence monitoring."
                 },
                 {
                     "category": "internal_patterns",
-                    "text": "What customer support issues or collection complaints most frequently surface in your customer support ticket queues?",
+                    "text": "What customer support issues or collection disputes most frequently surface in your customer support ticket queues?",
                     "rationale": "Connects internal support sentiment with public reviews."
                 },
                 {
                     "category": "strategic_priorities",
-                    "text": f"Over the next 12 months, are you prioritizing geographical expansion, launching SME merchant credit lines, or securing a digital banking license?",
+                    "text": f"Over the next 12 months, are you prioritizing geographical expansion, launching SME merchant credit lines, or securing banking licenses?",
                     "rationale": "Aligns briefing intelligence with corporate development goals."
                 },
                 {
                     "category": "decision_triggers",
-                    "text": "What changes in macro default rates, competitor credit limit offerings, or central bank notices should prompt immediate credit model recalibration?",
+                    "text": "What changes in macro default rates, competitor credit limit offerings, or central bank circulars should prompt immediate model recalibration?",
                     "rationale": "Establishes trigger rules for weekly risk notifications."
                 }
             ]
 
-        # General SaaS / Tech default
+        # Dynamic synthesis for ANY unseen company (Database, Infrastructure, SaaS, E-Commerce, Healthcare, etc.)
         return [
             {
                 "category": "revenue_engine",
-                "text": f"For {name}, what are your primary revenue streams and how are they structured between recurring subscriptions and services?",
-                "rationale": f"Analyzes the monetization model of {name}."
+                "text": f"For {name}, how are your commercial revenue streams structured across {prod_names}, and what represents your highest-margin offering?",
+                "rationale": f"Analyzes the commercial monetization model of {name} based on its extracted offerings."
             },
             {
                 "category": "customer_segments",
-                "text": f"Who represents your highest-margin and fastest-growing customer segments right now?",
-                "rationale": "Identifies target customer profiles for targeted market monitoring."
+                "text": f"Which specific buyer personas within {cust_names} represent your fastest-growing and highest-retention customer tier?",
+                "rationale": f"Focuses customer intelligence on {name}'s ideal customer profile."
             },
             {
                 "category": "customer_pain",
-                "text": "What are the most urgent operational problems or unmet needs your customers look to your platform to solve?",
-                "rationale": "Pinpoints the core problem space for customer signal extraction."
+                "text": f"What are the most persistent operational pain points or technical barriers your customers face when adopting {prod_names}?",
+                "rationale": "Identifies user friction and churn drivers for customer problem monitoring."
             },
             {
                 "category": "competitive_moat",
-                "text": f"Who are your most aggressive competitors or substitute solutions, and why do prospective customers choose you over them?",
-                "rationale": "Maps the competitive landscape and differentiator moats."
+                "text": f"When prospects evaluate alternatives in the {industry} sector, what is {name}'s decisive differentiator and moat?",
+                "rationale": "Maps competitive positioning against market incumbents and substitute solutions."
             },
             {
                 "category": "pricing_economics",
-                "text": "What are your primary unit economics drivers, and where is your pricing leverage strongest?",
-                "rationale": "Gathers commercial sensitivity metrics."
+                "text": "What are your primary unit economics levers (e.g. hosting costs, customer acquisition payback, gross margins), and where is pricing sensitive?",
+                "rationale": "Establishes financial sensitivity thresholds for competitive pricing alerts."
             },
             {
                 "category": "acquisition_channels",
-                "text": "What are your primary organic and paid customer acquisition channels, and where do you experience conversion drop-offs?",
-                "rationale": "Identifies distribution dependencies."
+                "text": "What are your primary customer acquisition channels (e.g. self-serve inbound, developer word-of-mouth, direct sales), and where do conversion drop-offs occur?",
+                "rationale": "Identifies marketing and distribution dependencies."
             },
             {
                 "category": "regulatory_risks",
-                "text": "What regulatory, legal, or industry compliance shifts could materially impact your operating model?",
-                "rationale": "Configures regulatory intelligence monitoring parameters."
+                "text": f"What regulatory, data compliance, or industry policy changes in your key markets could materially impact {name}'s operating model?",
+                "rationale": "Configures regulatory intelligence parameters."
             },
             {
                 "category": "internal_patterns",
-                "text": "What are the most frequent objections raised by prospects in sales conversations or customer churn interviews?",
-                "rationale": "Extracts internal friction points."
+                "text": "What are the most frequent objections raised by prospects in sales demos or proof-of-concept evaluations that lead to lost deals?",
+                "rationale": "Extracts internal objection benchmarks for comparison against competitor features."
             },
             {
                 "category": "strategic_priorities",
-                "text": f"What are {name}'s top three strategic milestones for the coming 6 to 12 months?",
+                "text": f"What are {name}'s top three strategic milestones and product bets for the coming 6 to 12 months?",
                 "rationale": "Aligns strategic relevance scoring with active roadmaps."
             },
             {
                 "category": "decision_triggers",
-                "text": "What external events or competitor moves would require an immediate strategic pivot or leadership decision?",
+                "text": "What specific external moves (e.g., competitor price cuts, new API announcements, vendor lock-in changes) should trigger an immediate executive review?",
                 "rationale": "Sets urgency scoring triggers for Monday Morning Brief generation."
             }
         ]
@@ -305,7 +308,8 @@ class AdaptiveInterviewEngine:
         answer_text: str
     ) -> InterviewAnswer:
         """
-        Records or updates an answer, extracting structured insights and checking for follow-up triggers.
+        Records or updates an answer, extracting structured insights and generating
+        targeted follow-up questions when critical risks or friction are disclosed.
         """
         question = db.query(InterviewQuestion).filter(InterviewQuestion.id == question_id).first()
         if not question:
@@ -321,19 +325,78 @@ class AdaptiveInterviewEngine:
             existing_answer.is_edited = True
             db.commit()
             db.refresh(existing_answer)
-            return existing_answer
+            answer_record = existing_answer
+        else:
+            answer_record = InterviewAnswer(
+                question_id=question_id,
+                company_id=question.company_id,
+                answer_text=answer_text,
+                derived_insights=insights,
+                is_edited=False
+            )
+            db.add(answer_record)
+            db.commit()
+            db.refresh(answer_record)
 
-        answer_obj = InterviewAnswer(
-            question_id=question_id,
-            company_id=question.company_id,
-            answer_text=answer_text,
-            derived_insights=insights,
-            is_edited=False
-        )
-        db.add(answer_obj)
-        db.commit()
-        db.refresh(answer_obj)
-        return answer_obj
+        # ADAPTIVE CAPABILITY: Check if answer triggers an adaptive follow-up question
+        self._check_and_create_followup(db, question, answer_text)
+
+        return answer_record
+
+    def _check_and_create_followup(
+        self,
+        db: Session,
+        parent_question: InterviewQuestion,
+        answer_text: str
+    ):
+        """
+        Inspects answer text for critical signals (churn, pricing pressure, delay, competitor threat)
+        and generates an adaptive follow-up question if not already created.
+        """
+        if parent_question.is_followup:
+            return  # Do not cascade follow-ups infinitely
+
+        # Check if follow-up already exists for this parent
+        existing_followup = db.query(InterviewQuestion).filter(
+            InterviewQuestion.parent_question_id == parent_question.id
+        ).first()
+        if existing_followup:
+            return
+
+        text_lower = answer_text.lower()
+        company = db.query(Company).filter(Company.id == parent_question.company_id).first()
+        c_name = company.name if company else "your company"
+
+        followup_text = None
+        rationale = None
+
+        if any(w in text_lower for w in ["drop-off", "drop off", "churn", "friction", "abandon", "quit"]):
+            followup_text = f"Follow-up on Customer Retention: You mentioned experiencing drop-offs or friction. What specific tactical interventions or product changes has {c_name} tested to minimize this drop-off, and what were the outcomes?"
+            rationale = "Generated dynamically based on disclosed customer drop-off friction."
+        elif any(w in text_lower for w in ["visa delay", "embassy", "moratorium", "permit cap", "refusal", "rejection"]):
+            followup_text = f"Follow-up on Immigration & Visa Sensitivity: Given the vulnerability to processing delays and caps, how is {c_name} diversifying candidate pathways or hedging revenue across alternative jurisdictions?"
+            rationale = "Generated dynamically based on disclosed regulatory/visa vulnerability."
+        elif any(w in text_lower for w in ["commission delay", "working capital", "cash flow", "margin squeeze", "refund"]):
+            followup_text = f"Follow-up on Unit Economics: How is {c_name} managing working capital buffer requirements and renegotiating terms with institutional partners to protect cash flow?"
+            rationale = "Generated dynamically based on disclosed financial and margin sensitivities."
+        elif any(w in text_lower for w in ["lost deal", "lost to", "chose", "competitor won", "undercut"]):
+            followup_text = f"Follow-up on Competitive Displacement: When prospects evaluate competitors and choose them, what specific feature, SLA, or pricing term is cited as the primary reason for switching?"
+            rationale = "Generated dynamically based on disclosed competitive lost-deal pattern."
+
+        if followup_text:
+            followup_q = InterviewQuestion(
+                company_id=parent_question.company_id,
+                question_order=parent_question.question_order,  # shares parent slot
+                question_text=followup_text,
+                question_category=f"{parent_question.question_category}_followup",
+                context_rationale=rationale,
+                is_confidential_eligible=True,
+                is_skipped=False,
+                is_followup=True,
+                parent_question_id=parent_question.id
+            )
+            db.add(followup_q)
+            db.commit()
 
     def skip_question(self, db: Session, question_id: str) -> InterviewQuestion:
         """
@@ -353,7 +416,7 @@ class AdaptiveInterviewEngine:
         insights.append({
             "category": category,
             "summary": text[:200] + ("..." if len(text) > 200 else ""),
-            "key_takeaway": f"Founder disclosed: {text[:150]}"
+            "key_takeaway": f"Executive disclosure: {text[:150]}"
         })
         return insights
 

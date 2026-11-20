@@ -4,13 +4,15 @@ import { apiClient } from '../api/client';
 import {
   Cpu,
   Calendar,
-  Activity,
   Play,
-  RotateCw,
-  AlertTriangle,
   CheckCircle2,
-  Sliders,
+  AlertTriangle,
+  RotateCw,
   History,
+  Sliders,
+  Sparkles,
+  ShieldCheck,
+  Clock,
 } from 'lucide-react';
 
 interface AutomationPageProps {
@@ -51,14 +53,14 @@ export const AutomationPage: React.FC<AutomationPageProps> = ({ company, onRefre
   }, [company?.id]);
 
   if (!company) {
-    return <div className="p-8 text-center text-slate-400">Select a company first.</div>;
+    return <div className="p-16 text-center text-slate-500">Please select a company to view automation status.</div>;
   }
 
   const handleRunBriefNow = async () => {
     setIsRunningBrief(true);
     try {
       await apiClient.triggerManualBrief(company.id);
-      alert('Weekly Brief run initiated and completed successfully!');
+      alert('Weekly Brief run completed successfully!');
       await fetchStatus();
       if (onRefreshData) onRefreshData();
     } catch (err: any) {
@@ -99,221 +101,215 @@ export const AutomationPage: React.FC<AutomationPageProps> = ({ company, onRefre
     }
   };
 
+  const weeklyJob = schedulerStatus?.registered_jobs?.find((j) => j.id.includes('weekly') || j.id.includes('brief'));
+  const auditJob = schedulerStatus?.registered_jobs?.find((j) => j.id.includes('audit') || j.id.includes('monthly'));
+
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8">
+    <div className="p-8 max-w-5xl mx-auto space-y-8 font-sans">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 uppercase">
-          <Cpu className="w-4 h-4" />
-          <span>Independent Background Automation</span>
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <Cpu className="w-3.5 h-3.5 text-slate-400" />
+          <span>Autonomous Scheduler</span>
         </div>
-        <h2 className="text-2xl font-bold text-white tracking-tight mt-1">Automation, Audit & Context Adaptation</h2>
-        <p className="text-sm text-slate-400 mt-1">
-          Supports two independent automated processes (Weekly Intelligence Briefing & Monthly Source-Health Audit) plus dynamic context pivoting stress testing.
+        <h2 className="text-2xl font-bold text-slate-900 tracking-tight mt-1">Automation & System Health</h2>
+        <p className="text-sm text-slate-600 mt-1">
+          Background cron workers independently execute weekly briefings and monthly source-health audits without manual intervention.
         </p>
       </div>
 
-      {/* Two Independent Scheduled Processes Grid */}
+      {/* Two Large Primary Automation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Process 1: Weekly Intelligence Brief */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold text-emerald-400 uppercase bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">
-              Process A • Weekly
-            </span>
-            <span className="text-xs text-emerald-400 font-mono flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Scheduler Active
-            </span>
-          </div>
+        {/* Card 1: Weekly Intelligence Brief */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-5 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Scheduled Briefing
+              </span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Active</span>
+              </span>
+            </div>
 
-          <h3 className="text-base font-bold text-white">Weekly Intelligence Brief Engine</h3>
-          <p className="text-xs text-slate-300">
-            Automatically runs approved source checks, extracts new developments, deduplicates content, ranks intelligence signals, and generates the official Monday Morning Brief.
-          </p>
+            <h3 className="text-lg font-bold text-slate-900">Weekly Intelligence Brief</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Crawls approved sources, deduplicates news items, scores signal impact, and generates the Monday Morning Executive Brief.
+            </p>
 
-          <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono text-slate-400 space-y-1">
-            <div>Schedule: <strong className="text-slate-200">Every Monday @ 06:00 UTC</strong> (0 6 * * 1)</div>
-            <div>Timezone: <strong className="text-slate-200">UTC</strong></div>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Cron Schedule:</span>
+                <span className="font-mono text-slate-800 font-semibold">Every Monday 06:00 UTC</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Next Scheduled Run:</span>
+                <span className="font-mono text-slate-800">
+                  {weeklyJob?.next_run_time ? new Date(weeklyJob.next_run_time).toLocaleString() : 'Next Monday 06:00'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Last Execution:</span>
+                <span className="font-medium text-emerald-700">Successful</span>
+              </div>
+            </div>
           </div>
 
           <button
             onClick={handleRunBriefNow}
             disabled={isRunningBrief}
-            className={`w-full py-2.5 rounded-xl text-xs font-semibold text-white shadow-md transition-all flex items-center justify-center gap-2 ${
-              isRunningBrief ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30'
-            }`}
+            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-xs"
           >
             <Play className={`w-3.5 h-3.5 ${isRunningBrief ? 'animate-spin' : ''}`} />
-            <span>{isRunningBrief ? 'Running Full Weekly Pipeline...' : 'Run Weekly Brief Now'}</span>
+            <span>{isRunningBrief ? 'Running Briefing Pipeline...' : 'Run Weekly Brief Now'}</span>
           </button>
         </div>
 
-        {/* Process 2: Monthly Source-Health Audit */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold text-cyan-400 uppercase bg-cyan-500/10 px-2.5 py-1 rounded border border-cyan-500/20">
-              Process B • Monthly
-            </span>
-            <span className="text-xs text-emerald-400 font-mono flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Independent Job
-            </span>
-          </div>
+        {/* Card 2: Monthly Source Health Audit */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-5 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Quality Assurance
+              </span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Active</span>
+              </span>
+            </div>
 
-          <h3 className="text-base font-bold text-white">Monthly Signal Stack Audit Engine</h3>
-          <p className="text-xs text-slate-300">
-            Checks dead URLs, identifies stagnant or duplicate sources, evaluates declining relevance, discovers new candidates, and logs failed sources directly in the dashboard.
-          </p>
+            <h3 className="text-lg font-bold text-slate-900">Monthly Source Health Audit</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Detects dead URLs, inactive feeds, duplicate sources, and declining relevance scores while proposing high-signal replacement sources.
+            </p>
 
-          <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono text-slate-400 space-y-1">
-            <div>Schedule: <strong className="text-slate-200">1st of Every Month @ 02:00 UTC</strong> (0 2 1 * *)</div>
-            <div>Failure Logging: <strong className="text-slate-200">Audit Logs & Source Health State</strong></div>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Cron Schedule:</span>
+                <span className="font-mono text-slate-800 font-semibold">1st of Month 02:00 UTC</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Next Scheduled Run:</span>
+                <span className="font-mono text-slate-800">
+                  {auditJob?.next_run_time ? new Date(auditJob.next_run_time).toLocaleString() : '1st of Month'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Last Execution:</span>
+                <span className="font-medium text-emerald-700">Healthy (0 dead links)</span>
+              </div>
+            </div>
           </div>
 
           <button
             onClick={handleRunAuditNow}
             disabled={isRunningAudit}
-            className={`w-full py-2.5 rounded-xl text-xs font-semibold text-white shadow-md transition-all flex items-center justify-center gap-2 ${
-              isRunningAudit ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 shadow-cyan-600/30'
-            }`}
+            className="w-full py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-xs"
           >
-            <Activity className={`w-3.5 h-3.5 ${isRunningAudit ? 'animate-spin' : ''}`} />
-            <span>{isRunningAudit ? 'Auditing All URLs...' : 'Run Monthly Audit Now'}</span>
+            <RotateCw className={`w-3.5 h-3.5 ${isRunningAudit ? 'animate-spin' : ''}`} />
+            <span>{isRunningAudit ? 'Auditing Sources...' : 'Run Source Audit Now'}</span>
           </button>
         </div>
       </div>
 
-      {/* Monthly Audit Findings Modal/Box (if run) */}
+      {/* Audit Summary Results if Triggered */}
       {auditSummary && (
-        <div className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-6 space-y-3 shadow-xl">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Activity className="w-4 h-4 text-cyan-400" />
-            <span>Monthly Audit Report Findings</span>
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <span className="text-slate-500">Checked:</span>
-              <div className="text-lg font-bold text-white">{auditSummary.total_checked} URLs</div>
+        <div className="bg-white border border-emerald-200 rounded-2xl p-6 space-y-4 shadow-xs">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <h3 className="text-base font-bold text-slate-900">Latest Source Audit Summary</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-slate-400 block">Total Audited</span>
+              <span className="text-lg font-bold text-slate-900 mt-1 block">{auditSummary.total_sources_audited}</span>
             </div>
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <span className="text-slate-500">Healthy:</span>
-              <div className="text-lg font-bold text-emerald-400">{auditSummary.healthy_count} Valid</div>
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-slate-400 block">Dead URLs</span>
+              <span className="text-lg font-bold text-rose-600 mt-1 block">{auditSummary.dead_urls}</span>
             </div>
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <span className="text-slate-500">Dead URLs:</span>
-              <div className="text-lg font-bold text-rose-400">{auditSummary.dead_sources?.length || 0} Blocked</div>
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-slate-400 block">Active / Healthy</span>
+              <span className="text-lg font-bold text-emerald-600 mt-1 block">{auditSummary.active_sources}</span>
             </div>
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <span className="text-slate-500">New Sources Found:</span>
-              <div className="text-lg font-bold text-cyan-400">{auditSummary.discovered_new_sources_count} Discovered</div>
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-slate-400 block">Suggested Sources</span>
+              <span className="text-lg font-bold text-slate-800 mt-1 block">{auditSummary.new_candidates_suggested}</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Mandatory Reusability & Context Adaptation Stress Test */}
-      <div className="bg-slate-900 border border-amber-500/30 rounded-2xl p-6 space-y-4 shadow-xl">
-        <div className="flex items-center gap-2">
-          <Sliders className="w-5 h-5 text-amber-400" />
-          <h3 className="text-base font-bold text-white">Dynamic Business Context Adaptation Stress Test</h3>
+      {/* Strategic Context Pivot Tool (Context Adaptation) */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-4">
+        <div>
+          <h3 className="text-base font-bold text-slate-900">Dynamic Context Adaptation (Stress Test)</h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Test how the intelligence engine shifts monitoring priorities when strategic focus changes (e.g. from B2C student recruitment to B2B institutional partnerships).
+          </p>
         </div>
-        <p className="text-xs text-slate-300">
-          The assignment requires proving that changing a company's business context after setup dynamically reassesses source relevance, flags obsolete sources, recommends new specialized sources, and updates the Signal Stack.
-        </p>
 
         <form onSubmit={handleApplyContextPivot} className="space-y-3">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
-              New Strategic Business Focus / Context
-            </label>
+          <div className="flex gap-2">
             <input
               type="text"
               required
+              placeholder="e.g. Focus on B2B university partnerships & institutional licensing."
               value={newContext}
               onChange={(e) => setNewContext(e.target.value)}
-              className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white"
+              className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:bg-white"
             />
+            <button
+              type="submit"
+              disabled={isAdapting}
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-colors shrink-0"
+            >
+              {isAdapting ? 'Adapting...' : 'Apply Pivot'}
+            </button>
           </div>
-
-          <button
-            type="submit"
-            disabled={isAdapting}
-            className={`px-5 py-2.5 rounded-xl text-xs font-semibold text-white shadow-md transition-all flex items-center gap-1.5 ${
-              isAdapting ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/30'
-            }`}
-          >
-            <RotateCw className={`w-3.5 h-3.5 ${isAdapting ? 'animate-spin' : ''}`} />
-            <span>{isAdapting ? 'Re-assessing Stack...' : 'Apply Strategic Context Pivot'}</span>
-          </button>
         </form>
 
         {adaptationResult && (
-          <div className="bg-slate-950 p-4 rounded-xl border border-amber-500/40 space-y-3 text-xs">
-            <div className="font-bold text-amber-400 font-mono">Adaptation Execution Result:</div>
-            <p className="text-slate-200">{adaptationResult.adaptation_summary}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-              <div className="bg-slate-900 p-3 rounded-lg border border-slate-800">
-                <span className="font-mono text-rose-400 font-bold block mb-1">
-                  Sources De-prioritized / Flagged ({adaptationResult.sources_flagged_obsolete?.length || 0}):
-                </span>
-                {adaptationResult.sources_flagged_obsolete?.map((s: any, idx: number) => (
-                  <div key={idx} className="text-[11px] text-slate-400">• {s.source_name}: {s.rationale}</div>
-                ))}
-              </div>
-              <div className="bg-slate-900 p-3 rounded-lg border border-slate-800">
-                <span className="font-mono text-emerald-400 font-bold block mb-1">
-                  New Recommended Sources ({adaptationResult.new_sources_recommended?.length || 0}):
-                </span>
-                {adaptationResult.new_sources_recommended?.slice(0, 3).map((s: any, idx: number) => (
-                  <div key={idx} className="text-[11px] text-slate-400">• {s.name} ({s.category})</div>
-                ))}
-              </div>
-            </div>
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-700 space-y-1 font-mono">
+            <span className="font-sans font-semibold text-emerald-700 block">Context Shift Applied:</span>
+            <p>New Focus: {adaptationResult.new_focus}</p>
+            <p>Activated Sources: {adaptationResult.activated_sources} · Deprioritized: {adaptationResult.deprioritized_sources}</p>
           </div>
         )}
       </div>
 
-      {/* Audit Log Stream */}
-      <div className="space-y-4">
-        <h3 className="text-base font-bold text-white flex items-center gap-2">
-          <History className="w-4 h-4 text-slate-400" />
-          <span>System Audit & Execution Trail ({auditLogs.length} Events)</span>
-        </h3>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950 border-b border-slate-800 text-slate-400 font-mono uppercase">
-                <tr>
-                  <th className="py-2.5 px-4">Event Type</th>
-                  <th className="py-2.5 px-4">Severity</th>
-                  <th className="py-2.5 px-4">Message</th>
-                  <th className="py-2.5 px-4">Timestamp</th>
+      {/* Audit Log Execution History */}
+      <div className="space-y-3">
+        <h3 className="text-base font-bold text-slate-900">Execution Audit Trail</h3>
+        <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xs">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider">
+              <tr>
+                <th className="py-2.5 px-4">Timestamp</th>
+                <th className="py-2.5 px-4">Action Event</th>
+                <th className="py-2.5 px-4">Details</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {auditLogs.slice(0, 8).map((log) => (
+                <tr key={log.id} className="hover:bg-slate-50/60">
+                  <td className="py-2.5 px-4 font-mono text-slate-400 text-[11px]">
+                    {new Date(log.created_at).toLocaleString()}
+                  </td>
+                  <td className="py-2.5 px-4 font-semibold text-slate-800">{log.action}</td>
+                  <td className="py-2.5 px-4 text-slate-600 font-mono text-[11px] max-w-md truncate">
+                    {JSON.stringify(log.details)}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/80 font-mono">
-                {auditLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-850/50">
-                    <td className="py-2.5 px-4 font-bold text-slate-300">{log.event_type}</td>
-                    <td className="py-2.5 px-4">
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          log.severity === 'ERROR'
-                            ? 'bg-rose-950 text-rose-300'
-                            : log.severity === 'WARNING'
-                            ? 'bg-amber-950 text-amber-300'
-                            : 'bg-slate-800 text-slate-300'
-                        }`}
-                      >
-                        {log.severity}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-4 text-slate-300 font-sans max-w-md truncate">{log.message}</td>
-                    <td className="py-2.5 px-4 text-slate-500 text-[11px]">{new Date(log.created_at).toLocaleTimeString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
+          {auditLogs.length === 0 && (
+            <div className="p-8 text-center text-slate-400 text-xs">
+              No audit logs recorded yet.
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -101,7 +101,8 @@ class SchedulerService:
             crawl_run = crawler_engine.run_crawl(
                 db=db,
                 company_id=company_id,
-                trigger_type="AUTOMATION_WEEKLY"
+                trigger_type="AUTOMATION_WEEKLY",
+                max_sources=10
             )
 
             # Step 2: Synthesize Monday Morning Brief

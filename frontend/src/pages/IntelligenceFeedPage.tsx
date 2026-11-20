@@ -5,11 +5,11 @@ import {
   Rss,
   Search,
   ExternalLink,
-  ShieldCheck,
-  TrendingUp,
-  AlertTriangle,
-  Info,
+  ChevronDown,
+  ChevronUp,
   SlidersHorizontal,
+  Info,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface IntelligenceFeedPageProps {
@@ -18,7 +18,7 @@ interface IntelligenceFeedPageProps {
 
 export const IntelligenceFeedPage: React.FC<IntelligenceFeedPageProps> = ({ company }) => {
   const [signals, setSignals] = useState<IntelligenceSignal[]>([]);
-  const [selectedSignal, setSelectedSignal] = useState<IntelligenceSignal | null>(null);
+  const [expandedSignals, setExpandedSignals] = useState<Record<string, boolean>>({});
 
   // Filters
   const [category, setCategory] = useState<string>('');
@@ -56,55 +56,59 @@ export const IntelligenceFeedPage: React.FC<IntelligenceFeedPageProps> = ({ comp
     fetchSignals();
   };
 
+  const toggleEvidence = (id: string) => {
+    setExpandedSignals((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   if (!company) {
-    return <div className="p-8 text-center text-slate-400">Select a company first.</div>;
+    return <div className="p-16 text-center text-slate-500">Please select a company to view the intelligence feed.</div>;
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8">
-      {/* Header */}
+    <div className="p-8 max-w-5xl mx-auto space-y-6 font-sans">
+      {/* Page Header */}
       <div>
-        <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 uppercase">
-          <Rss className="w-4 h-4" />
-          <span>Continuous Signal Stream</span>
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <Rss className="w-3.5 h-3.5 text-slate-400" />
+          <span>Real-Time Stream</span>
         </div>
-        <h2 className="text-2xl font-bold text-white tracking-tight mt-1">Intelligence Feed</h2>
-        <p className="text-sm text-slate-400 mt-1">
-          Every signal enforces a strict boundary between <strong className="text-white">Factual Evidence</strong> (crawled verbatim quotes) and <strong className="text-emerald-400">Strategic Interpretation</strong> (business implications & recommended actions).
+        <h2 className="text-2xl font-bold text-slate-900 tracking-tight mt-1">Intelligence Feed</h2>
+        <p className="text-sm text-slate-600 mt-1">
+          Every signal strictly separates <strong className="text-slate-900 font-semibold">Factual Evidence</strong> (crawled ground truth) from <strong className="text-slate-900 font-semibold">Strategic Interpretation</strong> (business implications & recommended actions).
         </p>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3 shadow-lg">
+      <div className="bg-white border border-slate-200/90 p-4 rounded-2xl space-y-3 shadow-xs">
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Search title, impact area, or strategic rationale..."
+              placeholder="Search by title, impact area, or keyword..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-700/80 rounded-lg text-xs text-white focus:outline-none focus:border-emerald-500"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-all"
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium"
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-medium transition-colors shadow-xs"
           >
             Search
           </button>
         </form>
 
-        <div className="flex flex-wrap items-center gap-3 text-xs pt-1 border-t border-slate-800/80">
-          <div className="flex items-center space-x-1.5 text-slate-400">
+        <div className="flex flex-wrap items-center gap-2.5 text-xs pt-1 border-t border-slate-100">
+          <div className="flex items-center space-x-1.5 text-slate-400 mr-1">
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Filters:</span>
+            <span className="font-medium text-slate-500">Filter:</span>
           </div>
 
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="bg-slate-950 text-white px-2.5 py-1.5 rounded-lg border border-slate-700 focus:outline-none text-xs"
+            className="bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none text-xs cursor-pointer"
           >
             <option value="">All Categories</option>
             <option value="Customers">Customers</option>
@@ -116,7 +120,7 @@ export const IntelligenceFeedPage: React.FC<IntelligenceFeedPageProps> = ({ comp
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            className="bg-slate-950 text-white px-2.5 py-1.5 rounded-lg border border-slate-700 focus:outline-none text-xs"
+            className="bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none text-xs cursor-pointer"
           >
             <option value="">All Priorities</option>
             <option value="CRITICAL">Critical</option>
@@ -128,127 +132,191 @@ export const IntelligenceFeedPage: React.FC<IntelligenceFeedPageProps> = ({ comp
           <select
             value={oppThreat}
             onChange={(e) => setOppThreat(e.target.value)}
-            className="bg-slate-950 text-white px-2.5 py-1.5 rounded-lg border border-slate-700 focus:outline-none text-xs"
+            className="bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none text-xs cursor-pointer"
           >
             <option value="">Opportunity / Threat</option>
             <option value="OPPORTUNITY">Opportunity Only</option>
             <option value="THREAT">Threat Only</option>
-            <option value="NEUTRAL">Neutral</option>
+            <option value="NEUTRAL">Neutral Only</option>
           </select>
 
           <select
             value={verification}
             onChange={(e) => setVerification(e.target.value)}
-            className="bg-slate-950 text-white px-2.5 py-1.5 rounded-lg border border-slate-700 focus:outline-none text-xs"
+            className="bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none text-xs cursor-pointer"
           >
             <option value="">All Verification</option>
             <option value="OFFICIAL">Official Disclosures</option>
             <option value="VERIFIED">Verified Ground Truth</option>
           </select>
 
-          <div className="ml-auto text-slate-400 font-mono text-xs">
-            Showing <strong className="text-white">{signals.length}</strong> signals
+          <div className="ml-auto text-slate-500 text-xs">
+            Showing <strong className="text-slate-900 font-semibold">{signals.length}</strong> signals
           </div>
         </div>
       </div>
 
-      {/* Signals List */}
+      {/* Signals Stream */}
       <div className="space-y-4">
-        {signals.map((sig) => (
-          <div
-            key={sig.id}
-            className="bg-slate-900 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-6 transition-all shadow-md space-y-4"
-          >
-            {/* Top Meta Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center space-x-2">
-                <span
-                  className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
-                    sig.overall_priority === 'CRITICAL'
-                      ? 'bg-rose-950 border border-rose-800 text-rose-300'
-                      : sig.overall_priority === 'HIGH'
-                      ? 'bg-amber-950 border border-amber-800 text-amber-300'
-                      : 'bg-slate-800 text-slate-300'
-                  }`}
+        {signals.map((sig) => {
+          const isExpanded = !!expandedSignals[sig.id];
+          return (
+            <div
+              key={sig.id}
+              className="bg-white border border-slate-200/90 rounded-2xl p-5 space-y-3.5 shadow-xs hover:border-slate-300 transition-all"
+            >
+              {/* Top Meta Line */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center space-x-2">
+                  <span
+                    className={`text-[10px] font-semibold px-2 py-0.5 rounded tracking-wide uppercase ${
+                      sig.overall_priority === 'CRITICAL'
+                        ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                        : sig.overall_priority === 'HIGH'
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        : 'bg-slate-100 text-slate-700 border border-slate-200'
+                    }`}
+                  >
+                    {sig.overall_priority}
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">· {sig.category}</span>
+                  <span
+                    className={`text-[10px] font-medium px-2 py-0.5 rounded ${
+                      sig.opportunity_threat === 'OPPORTUNITY'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : sig.opportunity_threat === 'THREAT'
+                        ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                    }`}
+                  >
+                    {sig.opportunity_threat}
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-50 text-slate-600 border border-slate-200 font-mono">
+                    {sig.verification_status}
+                  </span>
+                </div>
+
+                <div className="text-xs text-slate-400">
+                  <span className="text-slate-600 font-medium">{sig.source_name}</span>
+                  {sig.publication_date && (
+                    <span> · {new Date(sig.publication_date).toLocaleDateString()}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-base font-semibold text-slate-900 leading-snug">
+                {sig.title}
+              </h3>
+
+              {/* 3-Layer Information Model */}
+              <div className="space-y-2 text-sm text-slate-600 pt-0.5">
+                {/* Layer 1: What happened */}
+                <div className="flex items-start gap-2.5">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider shrink-0 w-24 pt-0.5">
+                    Development
+                  </span>
+                  <p className="text-slate-700 leading-relaxed">{sig.summary}</p>
+                </div>
+
+                {/* Layer 2: Why it matters */}
+                <div className="flex items-start gap-2.5">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider shrink-0 w-24 pt-0.5">
+                    Implication
+                  </span>
+                  <p className="text-slate-800 font-medium leading-relaxed">
+                    {sig.why_it_matters}
+                  </p>
+                </div>
+
+                {/* Layer 3: Action */}
+                {sig.recommended_action && (
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider shrink-0 w-24 pt-0.5">
+                      Action
+                    </span>
+                    <p className="text-slate-700 bg-emerald-50/50 border border-emerald-100 rounded-lg px-2.5 py-1 text-xs leading-relaxed flex-1">
+                      {sig.recommended_action}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Expandable Evidence Bar */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <button
+                  onClick={() => toggleEvidence(sig.id)}
+                  className="text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors"
                 >
-                  {sig.overall_priority} ({sig.ranking_score.toFixed(0)})
-                </span>
-                <span className="text-xs font-semibold text-slate-300">• {sig.category}</span>
-                <span
-                  className={`text-[10px] px-2 py-0.5 rounded font-mono ${
-                    sig.opportunity_threat === 'OPPORTUNITY'
-                      ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                      : sig.opportunity_threat === 'THREAT'
-                      ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                      : 'bg-slate-800 text-slate-300'
-                  }`}
-                >
-                  {sig.opportunity_threat}
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-slate-950 text-slate-400 border border-slate-800">
-                  {sig.verification_status}
-                </span>
-              </div>
+                  {isExpanded ? (
+                    <>
+                      <span>Hide Source Evidence</span>
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    </>
+                  ) : (
+                    <>
+                      <span>View Source Evidence</span>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
 
-              <div className="flex items-center space-x-3 text-xs text-slate-400">
-                <span className="font-mono">
-                  Pub: {sig.publication_date ? new Date(sig.publication_date).toLocaleDateString() : 'Recent'}
-                </span>
-                <a
-                  href={sig.source_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-emerald-400 hover:underline flex items-center gap-1 font-mono text-xs"
-                >
-                  <span>{sig.source_name}</span> <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-            </div>
-
-            {/* Title & Summary */}
-            <div>
-              <h3 className="text-base font-bold text-white leading-snug">{sig.title}</h3>
-              <p className="text-xs text-slate-300 mt-1">{sig.summary}</p>
-            </div>
-
-            {/* STRICT BOUNDARY: Two-column Evidence vs Interpretation */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-              {/* Box 1: Ground Truth Evidence */}
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-emerald-400 font-bold uppercase">1. Raw Factual Evidence</span>
-                  <span className="text-slate-500">Reliability: {sig.source_reliability}</span>
-                </div>
-                <div className="text-xs text-slate-300 font-mono italic bg-slate-900/60 p-2.5 rounded border border-slate-800/60">
-                  "{sig.evidence_snippet}"
-                </div>
-                <div className="text-[11px] text-slate-500 font-mono">
-                  AI confidence is never presented as proof of truth.
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-slate-400">Impact Score:</span>
+                  <span className="text-xs font-mono font-semibold text-slate-700">
+                    {sig.ranking_score.toFixed(0)}/100
+                  </span>
                 </div>
               </div>
 
-              {/* Box 2: Strategic Business Interpretation */}
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-cyan-400 font-bold uppercase">2. Strategic Interpretation</span>
-                  <span className="text-slate-400">Area: {sig.affected_business_area}</span>
-                </div>
-                <p className="text-xs text-slate-300">
-                  <strong className="text-white">Why It Matters:</strong> {sig.why_it_matters}
-                </p>
-                <p className="text-xs text-emerald-300 bg-emerald-950/40 p-2 rounded border border-emerald-800/40">
-                  <strong className="text-white">Action:</strong> {sig.recommended_action}
-                </p>
-              </div>
-            </div>
+              {/* Expandable Evidence Drawer */}
+              {isExpanded && (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5 text-xs text-slate-600 font-sans animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-slate-800">Source Endpoint:</span>
+                      <span className="text-slate-600">{sig.source_name}</span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-medium">
+                      Status: {sig.verification_status}
+                    </span>
+                  </div>
 
-            {/* Ranking Breakdown Callout */}
-            <div className="text-[11px] text-slate-400 font-mono bg-slate-950/80 px-3.5 py-2 rounded-lg border border-slate-800/60 flex items-center gap-2">
-              <Info className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <span>{sig.ranking_explanation}</span>
+                  <div className="bg-white border border-slate-200 rounded-lg p-3 text-slate-700 font-mono text-[11px] leading-relaxed">
+                    <span className="font-sans font-semibold text-slate-900 block mb-1">
+                      Crawled Verbatim Snippet:
+                    </span>
+                    "{sig.evidence_snippet}"
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-slate-400 text-[11px] flex items-center gap-1">
+                      <Info className="w-3 h-3 text-slate-400" />
+                      <span>{sig.ranking_explanation}</span>
+                    </span>
+                    <a
+                      href={sig.source_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-emerald-700 hover:text-emerald-800 font-medium inline-flex items-center gap-1"
+                    >
+                      <span>Direct Citation URL</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
+          );
+        })}
+
+        {signals.length === 0 && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-16 text-center space-y-2 text-slate-500">
+            <Rss className="w-8 h-8 text-slate-300 mx-auto" />
+            <h4 className="text-base font-semibold text-slate-800">No Signals Match Filter</h4>
+            <p className="text-xs">Adjust search query or category filters to view recorded intelligence.</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

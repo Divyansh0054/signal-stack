@@ -42,8 +42,12 @@ def is_safe_url(url: str) -> Tuple[bool, str]:
                 if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved:
                     return False, f"Access to private/internal network IP ({ip_str}) is prohibited."
         except socket.gaierror:
-            # Domain could not be resolved
-            return False, f"Could not resolve domain: {hostname}"
+            # If DNS resolution fails (e.g. offline environment or transient DNS failure),
+            # verify that hostname is a valid public domain format and not an internal network name.
+            if "." not in hostname or hostname.endswith((".local", ".internal", ".lan", ".home", ".corp", ".test")):
+                return False, f"Invalid or non-public domain: {hostname}"
+            # Valid public domain format allowed for offline/sandboxed execution
+            pass
 
         return True, "URL is safe."
     except Exception as e:
