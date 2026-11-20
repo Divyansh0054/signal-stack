@@ -32,7 +32,7 @@ export const CompanySetupPage: React.FC<CompanySetupPageProps> = ({
         formattedUrl = 'https://' + formattedUrl;
       }
 
-      const res = await fetch('/api/companies', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/companies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
